@@ -1,0 +1,7 @@
+program expr;
+var float resultado;
+main {
+    resultado = (3 + 5) * 2.5;
+    print(resultado);
+}
+end

@@ -1,0 +1,7 @@
+program errorSintaxis;
+var int x;
+main {
+    x = 10
+    print(x);
+}
+end

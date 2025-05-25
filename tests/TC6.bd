@@ -1,0 +1,11 @@
+program decision;
+var int a;
+main {
+    a = 5;
+    if (a < 10) {
+        print("Menor que 10");
+    } else {
+        print("Mayor o igual que 10");
+    }
+}
+end

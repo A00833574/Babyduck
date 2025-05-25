@@ -1,0 +1,6 @@
+program funcSinParams;
+int suma() : var int a; { a = 1; print(a); } ;
+main {
+    print(1);
+}
+end

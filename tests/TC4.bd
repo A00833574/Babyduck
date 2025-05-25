@@ -1,0 +1,6 @@
+program funcParams;
+int mult(int x, float y) : var float res; { res = x * y; print(res); } ;
+main {
+    print(2);
+}
+end

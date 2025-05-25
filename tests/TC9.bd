@@ -1,0 +1,6 @@
+program llamado;
+int cuadrado(int x) : var int r; { r = x * x; print(r); } ;
+main {
+    cuadrado(5);
+}
+end
