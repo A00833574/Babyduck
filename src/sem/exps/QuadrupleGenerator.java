@@ -101,14 +101,24 @@ public class QuadrupleGenerator {
         quadruples.add(new Quadruple("GOSUB", funcName, null, String.valueOf(target)));
     }
 
+    /**
+     * Returns the list of generated quadruples.
+     */
+    public List<Quadruple> getQuadruples() {
+        return quadruples;
+    }
+
     public static void displayOnProgramEnd(QuadrupleGenerator qg) {
         qg.displayQuadruples();
     }
 
     public static class Quadruple {
-        String op,left,right,result;
+        public String op;
+        public String left;
+        public String right;
+        public String result;
         Quadruple(String op, String l, String r, String res) {
-            this.op=op; this.left=l; this.right=r; this.result=res;
+            this.op = op; this.left = l; this.right = r; this.result = res;
         }
         @Override public String toString(){
             return "(" + op + ", " + left + ", " + right + ", " + result + ")";

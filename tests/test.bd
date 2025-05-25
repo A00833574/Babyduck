@@ -7,6 +7,14 @@ int sum(int a, int b) : var int r; {
 } ;
 
 main {
+    // Llamada a función: debe imprimir 5
     sum(2, 3);
+
+    // Pruebas de expresiones directas:
+    // 5 + 7 * 2 = 19
+    print(5 + 7 * 2);
+
+    // (5 + 7) * 2 = 24
+    print((5 + 7) * 2);
 }
 end

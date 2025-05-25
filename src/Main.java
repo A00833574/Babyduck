@@ -4,6 +4,7 @@ import sem.SemanticVisitor;
 import sem.exps.QuadrupleGenerator;
 import sem.funcs.FunctionDirectory;
 import mem.VirtualMemoryManager;
+import vm.VirtualMachine;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -23,5 +24,13 @@ public class Main {
         System.out.println("Análisis semántico exitoso.");
         System.out.println(visitor.getFunctionDirectory());
         QuadrupleGenerator.displayOnProgramEnd(visitor.getQuadrupleGenerator());
+
+        System.out.println("\n--- Resultados de la Máquina Virtual ---");
+        VirtualMachine vm = new VirtualMachine(
+            visitor.getQuadrupleGenerator().getQuadruples(),
+            visitor.getMemoryManager()
+        );
+        vm.run();
+        System.out.println("--- Fin de ejecución VM ---");
     }
 }
