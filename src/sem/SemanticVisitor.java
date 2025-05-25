@@ -1,4 +1,10 @@
-package src.sem;
+package sem;
+
+import lex.BabyDuckParser;
+import lex.BabyDuckBaseVisitor;
+import mem.VirtualMemoryManager;
+import sem.exps.QuadrupleGenerator;
+import sem.funcs.FunctionDirectory;
 
 import org.antlr.v4.runtime.tree.*;
 import java.util.*;

@@ -1,4 +1,4 @@
-package src.mem;
+package mem;
 import java.util.HashMap;
 import java.util.Map;
 

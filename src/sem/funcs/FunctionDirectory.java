@@ -1,4 +1,5 @@
-package src.sem.funcs;
+package sem.funcs;
+import sem.vars.VariableTable;
 import java.util.*;
 
 public class FunctionDirectory {

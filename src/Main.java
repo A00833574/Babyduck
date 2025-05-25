@@ -1,10 +1,11 @@
-package src;
+import lex.BabyDuckLexer;
+import lex.BabyDuckParser;
+import sem.SemanticVisitor;
+import sem.exps.QuadrupleGenerator;
+import sem.funcs.FunctionDirectory;
+import mem.VirtualMemoryManager;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-
-import src.lex.BabyDuckLexer;
-import src.lex.BabyDuckParser;
-import src.sem.exps.QuadrupleGenerator;
 
 public class Main {
     public static void main(String[] args) throws Exception {

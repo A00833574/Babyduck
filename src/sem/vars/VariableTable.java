@@ -1,4 +1,4 @@
-package src.sem.vars;
+package sem.vars;
 import java.util.*;
 
 public class VariableTable {

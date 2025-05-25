@@ -1,5 +1,7 @@
-package src.lex;
-// Generated from BabyDuck.g4 by ANTLR 4.13.2
+// Generated from src/lex/BabyDuck.g4 by ANTLR 4.13.2
+
+package lex;
+
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;

@@ -1,4 +1,13 @@
+
 grammar BabyDuck;
+
+@header {
+package lex;
+}
+
+options {
+  language = Java;
+}
 
 // ----------------------------
 // PARSER RULES

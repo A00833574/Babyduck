@@ -1,7 +1,7 @@
-package src.sem.exps;
+package sem.exps;
 import java.util.*;
 
-import src.mem.VirtualMemoryManager;
+import mem.VirtualMemoryManager;
 
 /**
  * Generador de cuádruplos con back-patch para saltos y manejo de memoria virtual.
