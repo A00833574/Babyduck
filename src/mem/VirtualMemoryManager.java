@@ -3,11 +3,7 @@ package mem;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Asigna direcciones virtuales para globals, locals, consts y temps.
- */
 public class VirtualMemoryManager {
-    // Bases de memoria
     public static final int GLOBAL_INT_BASE = 1000;
     public static final int GLOBAL_FLOAT_BASE = 2000;
     public static final int GLOBAL_STRING_BASE = 3000;
@@ -21,13 +17,11 @@ public class VirtualMemoryManager {
     public static final int CONST_FLOAT_BASE = 14000;
     public static final int CONST_STRING_BASE = 15000;
 
-    // Contadores de offsets
     private int nextGlobalInt = 0, nextGlobalFloat = 0, nextGlobalString = 0;
     private int nextLocalInt = 0, nextLocalFloat = 0, nextLocalString = 0;
     private int nextTempInt = 0, nextTempFloat = 0, nextTempString = 0;
     private int nextConstInt = 0, nextConstFloat = 0, nextConstString = 0;
 
-    // Tablas de direcciones
     private Map<String, Integer> globalVars = new HashMap<>();
     private Map<String, Map<String, Integer>> localVars = new HashMap<>();
     private Map<String, Integer> constants = new HashMap<>();

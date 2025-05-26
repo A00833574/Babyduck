@@ -19,7 +19,6 @@ public class VirtualMachine {
         this.quads = quads;
         this.memoryManager = vm;
 
-        // Precarga constantes
         for (Map.Entry<String,Integer> e : memoryManager.getConstantsMap().entrySet()) {
             String[] parts = e.getKey().split(":",2);
             String type = parts[0], lit = parts[1];
@@ -38,7 +37,6 @@ public class VirtualMachine {
             constMem.put(addr, val);
         }
 
-        // Contexto global
         localStack.push(new HashMap<>());
     }
 

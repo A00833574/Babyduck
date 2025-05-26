@@ -40,9 +40,6 @@ public class FunctionDirectory {
         return fi.getReturnType();
     }
 
-    /** 
-     * Returns the ordered list of parameter names for a function. 
-     */
     public List<String> getParameterNames(String name) {
         FunctionInfo fi = directory.get(name);
         if (fi == null) throw new RuntimeException("Función no encontrada: " + name);

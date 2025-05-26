@@ -39,7 +39,7 @@ statement    : assign SEMICOLON
 
 assign       : ID ASSIGN expresion ;
 
-print        : PRINT LPAREN expresion (COMMA expresion)* RPAREN SEMICOLON ;
+print        : PRINT LPAREN (expresion | CTE_STRING) ( COMMA (expresion | CTE_STRING) )* RPAREN SEMICOLON;
 
 condition    : IF LPAREN expresion RPAREN body (ELSE body)? ;
 
@@ -61,7 +61,6 @@ termino      : factor ((MULT | DIV) factor)* ;
 factor       : LPAREN expresion RPAREN
              | CTE_INT
              | CTE_FLOAT
-             | CTE_STRING
              | ID
              | f_call ;
 

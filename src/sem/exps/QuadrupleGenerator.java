@@ -3,9 +3,6 @@ import java.util.*;
 
 import mem.VirtualMemoryManager;
 
-/**
- * Generador de cuádruplos con back-patch para saltos y manejo de memoria virtual.
- */
 public class QuadrupleGenerator {
     private final Stack<String> operandStack   = new Stack<>();
     private final Stack<String> operatorStack  = new Stack<>();
@@ -90,7 +87,6 @@ public class QuadrupleGenerator {
         return operandStack.peek();
     }
 
-    // Funciones de llamada a función
     public void generateEra(String funcName) {
         quadruples.add(new Quadruple("ERA", funcName, null, null));
     }
@@ -101,11 +97,8 @@ public class QuadrupleGenerator {
         quadruples.add(new Quadruple("GOSUB", funcName, null, String.valueOf(target)));
     }
 
-    /**
-     * Returns the list of generated quadruples.
-     */
-    public List<Quadruple> getQuadruples() {
-        return quadruples;
+
+    public List<Quadruple> getQuadruples() {        return quadruples;
     }
 
     public static void displayOnProgramEnd(QuadrupleGenerator qg) {

@@ -15,7 +15,6 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     private final VirtualMemoryManager memory = new VirtualMemoryManager();
     private final QuadrupleGenerator quadGen;
     private final Map<String, Integer> funcStartQuad = new HashMap<>();
-    // Store each function's parse context for deferred body generation
     private final Map<String, BabyDuckParser.FuncionContext> funcContexts = new HashMap<>();
 
     public SemanticVisitor() {
@@ -37,15 +36,12 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
 
-        // Process parameters and variable declarations
         visit(ctx.parametros());
         visit(ctx.vars());
 
-        // Record start quad and context for later body generation
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
 
-        // Return to global context
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
         return null;
@@ -56,7 +52,6 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         for (int i = 0; i < ctx.tipo().size(); i++) {
             String type = ctx.tipo(i).getText();
             String name = ctx.ID(i).getText();
-            // Register parameter (name and type) and allocate local variable
             functionDirectory.addParam(name, type);
             memory.allocateLocalVariable(currentFunction, name, type);
         }
@@ -130,27 +125,18 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
 
     @Override
     public String visitTermino(BabyDuckParser.TerminoContext ctx) {
-        // Handle multiplication and division with correct precedence
-        // Evaluate first factor
         String leftType = visit(ctx.factor(0));
         String leftAddr = quadGen.popLastOperand();
-        // For each subsequent factor, apply the operator and generate quadruple
         for (int i = 1; i < ctx.factor().size(); i++) {
-            // Operator in between factors is at position 2*i-1 in the parse tree
             String op = ctx.getChild(2 * i - 1).getText();
-            // Evaluate next factor
             String rightType = visit(ctx.factor(i));
             String rightAddr = quadGen.popLastOperand();
-            // Push left and right operands back, then the operator
             quadGen.pushOperand(leftAddr, leftType);
             quadGen.pushOperand(rightAddr, rightType);
             quadGen.pushOperator(op);
-            // Generate the multiplication/division quadruple
             quadGen.generateExpressionQuadruple();
-            // The result becomes the new left operand for chaining
             leftAddr = quadGen.peekLastOperand();
         }
-        // Push final result for the term
         quadGen.pushOperand(leftAddr, leftType);
         return leftType;
     }
@@ -238,30 +224,23 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     @Override
     public String visitF_call(BabyDuckParser.F_callContext ctx) {
         String fn = ctx.ID().getText();
-        // 1. Prepare call
         quadGen.generateEra(fn);
 
-        // 2. Evaluate and pass each argument
         List<String> paramNames = functionDirectory.getParameterNames(fn);
         for (int i = 0; i < ctx.expresion().size(); i++) {
             String type = visit(ctx.expresion(i));
             String addr = quadGen.popLastOperand();
-            // destination address is the parameter variable address
             int dstAddr = memory.getVariableAddress(fn, paramNames.get(i));
             quadGen.generateParam(addr, dstAddr);
         }
 
-        // 3. Emit GOSUB pointing to the first body quad
         int target = quadGen.nextQuad() + 1;
         quadGen.generateGoSub(fn, target);
 
-        // 4. Now emit the function body quads
-        // Switch context to the called function for body generation
         functionDirectory.setCurrentFunction(fn);
         currentFunction = fn;
         BabyDuckParser.FuncionContext fctx = funcContexts.get(fn);
         visit(fctx.body());
-        // Restore global context after generating function body
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
 
