@@ -7,16 +7,17 @@ public class FunctionDirectory {
     private Map<String,FunctionInfo> directory = new HashMap<>();
     private String currentFunction = null;
 
-    public void addFunction(String name, String returnType) {
+    public void addFunction(String name, String ignoredReturnType) {
         if (directory.containsKey(name))
-            throw new RuntimeException("Función '"+name+"' ya declarada.");
-        directory.put(name, new FunctionInfo(returnType));
+            throw new RuntimeException("Función '" + name + "' ya declarada.");
+        // Ignoramos `ignoredReturnType` y forzamos "void"
+        directory.put(name, new FunctionInfo());
         currentFunction = name;
     }
 
     public void setCurrentFunction(String name) {
         if (!directory.containsKey(name))
-            throw new RuntimeException("Función '"+name+"' no encontrada.");
+            throw new RuntimeException("Función '" + name + "' no encontrada.");
         currentFunction = name;
     }
 
@@ -29,16 +30,14 @@ public class FunctionDirectory {
     }
 
     public String getVariableType(String name) {
+        // Busca en alcance local; si no existe, busca en global
         String t = directory.get(currentFunction).getVariableType(name);
         if (t != null) return t;
         return directory.get("global").getVariableType(name);
     }
 
-    public String getFunctionReturnType(String name) {
-        FunctionInfo fi = directory.get(name);
-        if (fi == null) throw new RuntimeException("Función no encontrada: "+name);
-        return fi.getReturnType();
-    }
+    // Ya no es relevante obtener tipo de retorno, todas las funciones son void
+    // public String getFunctionReturnType(String name) { ... }
 
     public List<String> getParameterNames(String name) {
         FunctionInfo fi = directory.get(name);
@@ -63,8 +62,9 @@ public class FunctionDirectory {
         private List<String> paramNames  = new ArrayList<>();
         private VariableTable variables  = new VariableTable();
 
-        FunctionInfo(String returnType) {
-            this.returnType = returnType;
+        FunctionInfo() {
+            // Siempre "void"
+            this.returnType = "void";
         }
 
         public void addParam(String name, String type) {
@@ -81,13 +81,9 @@ public class FunctionDirectory {
             return variables.get(name);
         }
 
-        public String getReturnType() {
-            return returnType;
-        }
-
         @Override
         public String toString() {
-            return "ReturnType: "+returnType+", Params: "+params+", Vars: "+variables;
+            return "ReturnType: void, Params: " + params + ", Vars: " + variables;
         }
     }
 }

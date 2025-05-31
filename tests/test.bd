@@ -1,7 +1,6 @@
 program testCall;
-var int dummy;           // reserva una variable global para verificar directorio
 
-int sum(int a, int b) : var int r; {
+void sum(int a, int b) : var int r; {
     r = a + b;
     print(r);
 } ;

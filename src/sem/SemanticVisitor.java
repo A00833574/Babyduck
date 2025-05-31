@@ -18,11 +18,13 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     private final Map<String, BabyDuckParser.FuncionContext> funcContexts = new HashMap<>();
 
     public SemanticVisitor() {
+        // Registra la función global (void)
         functionDirectory.addFunction("global", "void");
         functionDirectory.setCurrentFunction("global");
         quadGen = new QuadrupleGenerator(memory);
     }
 
+    // Punto de entrada para el árbol de sintaxis
     @Override
     public String visitPrograma(BabyDuckParser.ProgramaContext ctx) {
         return super.visitPrograma(ctx);
@@ -30,18 +32,21 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
 
     @Override
     public String visitFuncion(BabyDuckParser.FuncionContext ctx) {
-        String returnType = ctx.tipo().getText();
+        // Ahora solo se lee el identificador y se fuerza "void"
         String funcName = ctx.ID().getText();
-        functionDirectory.addFunction(funcName, returnType);
+        functionDirectory.addFunction(funcName, "void");
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
 
+        // Registra parámetros y variables locales
         visit(ctx.parametros());
         visit(ctx.vars());
 
+        // Guarda el punto de inicio de los cuádruplos para esta función
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
 
+        // Regresa a contexto global
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
         return null;
@@ -78,9 +83,11 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         String name = ctx.ID().getText();
         if (functionDirectory.getVariableType(name) == null)
             throw new RuntimeException("Var no declarada: " + name);
+
         String t = visit(ctx.expresion());
         String addr = quadGen.popLastOperand();
         quadGen.pushOperand(addr, t);
+
         int varAddr = memory.getVariableAddress(currentFunction, name);
         quadGen.generateAssignment(String.valueOf(varAddr));
         return null;
@@ -118,7 +125,6 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
             quadGen.pushOperator(op);
             quadGen.generateExpressionQuadruple();
             la = quadGen.peekLastOperand();
-            lt = lt;
         }
         return lt;
     }
@@ -163,12 +169,6 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
             int a = memory.getConstantAddress(v, "float");
             quadGen.pushOperand(String.valueOf(a), "float");
             return "float";
-        }
-        if (ctx.CTE_STRING() != null) {
-            String v = ctx.CTE_STRING().getText();
-            int a = memory.getConstantAddress(v, "string");
-            quadGen.pushOperand(String.valueOf(a), "string");
-            return "string";
         }
         if (ctx.expresion() != null) {
             return visit(ctx.expresion());
@@ -244,7 +244,8 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
 
-        return functionDirectory.getFunctionReturnType(fn);
+        // Siempre void
+        return null;
     }
 
     public FunctionDirectory getFunctionDirectory() {

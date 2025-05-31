@@ -31,6 +31,5 @@ public class Main {
             visitor.getMemoryManager()
         );
         vm.run();
-        System.out.println("--- Fin de ejecución VM ---");
     }
 }

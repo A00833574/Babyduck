@@ -1,4 +1,3 @@
-
 grammar BabyDuck;
 
 @header {
@@ -23,7 +22,8 @@ tipo         : INT
 
 funcs        : funcion* ;
 
-funcion      : tipo ID LPAREN parametros? RPAREN COLON vars body SEMICOLON ;
+// Ahora todas las funciones deben declararse con VOID
+funcion      : VOID ID LPAREN parametros? RPAREN COLON vars body SEMICOLON ;
 
 parametros   : tipo ID (COMMA tipo ID)* ;
 
