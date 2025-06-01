@@ -24,6 +24,7 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         quadGen = new QuadrupleGenerator(memory);
     }
 
+    // Regla raíz del árbol de sintaxis
     @Override
     public String visitPrograma(BabyDuckParser.ProgramaContext ctx) {
         gotoMainQuadIndex = quadGen.generateGoto(); 
@@ -38,16 +39,24 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
 
     @Override
     public String visitFuncion(BabyDuckParser.FuncionContext ctx) {
+        // Adquiere el contexto activo de la función
         String funcName = ctx.ID().getText();
+        // Añade la función al directorio de funciones
         functionDirectory.addFunction(funcName, "void");
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
+        // Visita parametros, añadiendolos al directorio de funciones y asigna la memoria
         visit(ctx.parametros());
+        // Visita variables locales, añadiendolas al directorio de funciones y asigna la memoria
         visit(ctx.vars());
+        // Genera el cuádruplo de inicio de función
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
+        // Visita el cuerpo de la función, lo que generará los cuádruplos correspondientes
         visit(ctx.body());
+        // Genera el cuádruplo de fin de función
         quadGen.getQuadruples().add(new QuadrupleGenerator.Quadruple("ENDFUNC", null, null, null));
+        // Regresa al contexto global
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
         return null;

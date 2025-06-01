@@ -95,17 +95,34 @@ public class VirtualMachine {
                 case "-":
                 case "*":
                 case "/": {
-                    int l = Integer.parseInt(q.left);
-                    int r = Integer.parseInt(q.right);
-                    int a = (Integer) getValue(l);
-                    int b = (Integer) getValue(r);
-                    int res = switch (q.op) {
-                        case "+" -> a + b;
-                        case "-" -> a - b;
-                        case "*" -> a * b;
-                        default -> a / b;
-                    };
-                    setValue(Integer.parseInt(q.result), res);
+                    int lAddr = Integer.parseInt(q.left);
+                    int rAddr = Integer.parseInt(q.right);
+                    Object leftVal = getValue(lAddr);
+                    Object rightVal = getValue(rAddr);
+                    // Determine operation type: both int, both float, or mixed
+                    if (leftVal instanceof Integer && rightVal instanceof Integer) {
+                        int a = (Integer) leftVal;
+                        int b = (Integer) rightVal;
+                        int res = switch (q.op) {
+                            case "+" -> a + b;
+                            case "-" -> a - b;
+                            case "*" -> a * b;
+                            default -> a / b;
+                        };
+                        setValue(Integer.parseInt(q.result), res);
+                    }
+                    else {
+                        // Treat operands as floats
+                        float a = (leftVal instanceof Float) ? (Float) leftVal : (Integer) leftVal;
+                        float b = (rightVal instanceof Float) ? (Float) rightVal : (Integer) rightVal;
+                        float res = switch (q.op) {
+                            case "+" -> a + b;
+                            case "-" -> a - b;
+                            case "*" -> a * b;
+                            default -> a / b;
+                        };
+                        setValue(Integer.parseInt(q.result), res);
+                    }
                     IP++;
                     break;
                 }
@@ -120,54 +137,60 @@ public class VirtualMachine {
                     Object leftObj = getValue(lAddr);
                     Object rightObj = getValue(rAddr);
                     boolean resBool;
-                    // Comparar enteros
+                    // Both int
                     if (leftObj instanceof Integer && rightObj instanceof Integer) {
                         int a = (Integer) leftObj;
                         int b = (Integer) rightObj;
                         switch (q.op) {
-                            case "<":
-                                resBool = a < b;
-                                break;
-                            case "<=":
-                                resBool = a <= b;
-                                break;
-                            case ">":
-                                resBool = a > b;
-                                break;
-                            case ">=":
-                                resBool = a >= b;
-                                break;
-                            case "==":
-                                resBool = a == b;
-                                break;
-                            default:
-                                resBool = a != b; // "!="
+                            case "<":  resBool = a < b; break;
+                            case "<=": resBool = a <= b; break;
+                            case ">":  resBool = a > b; break;
+                            case ">=": resBool = a >= b; break;
+                            case "==": resBool = a == b; break;
+                            default:   resBool = a != b; // "!="
                         }
                     }
-                    // Comparar flotantes
+                    // Both float
                     else if (leftObj instanceof Float && rightObj instanceof Float) {
                         float a = (Float) leftObj;
                         float b = (Float) rightObj;
                         switch (q.op) {
-                            case "<":
-                                resBool = a < b;
-                                break;
-                            case "<=":
-                                resBool = a <= b;
-                                break;
-                            case ">":
-                                resBool = a > b;
-                                break;
-                            case ">=":
-                                resBool = a >= b;
-                                break;
-                            case "==":
-                                resBool = a == b;
-                                break;
-                            default:
-                                resBool = a != b; // "!="
+                            case "<":  resBool = a < b; break;
+                            case "<=": resBool = a <= b; break;
+                            case ">":  resBool = a > b; break;
+                            case ">=": resBool = a >= b; break;
+                            case "==": resBool = a == b; break;
+                            default:   resBool = a != b; // "!="
                         }
-                    } else {
+                    }
+                    // Mixed: one int, one float
+                    else if ((leftObj instanceof Integer && rightObj instanceof Float) ||
+                             (leftObj instanceof Float && rightObj instanceof Integer)) {
+                        float a = (leftObj instanceof Float) ? (Float) leftObj : (Integer) leftObj;
+                        float b = (rightObj instanceof Float) ? (Float) rightObj : (Integer) rightObj;
+                        switch (q.op) {
+                            case "<":  resBool = a < b; break;
+                            case "<=": resBool = a <= b; break;
+                            case ">":  resBool = a > b; break;
+                            case ">=": resBool = a >= b; break;
+                            case "==": resBool = a == b; break;
+                            default:   resBool = a != b; // "!="
+                        }
+                    }
+                    // String comparison unchanged
+                    else if (leftObj instanceof String && rightObj instanceof String) {
+                        String a = (String) leftObj;
+                        String b = (String) rightObj;
+                        switch (q.op) {
+                            case "<":  resBool = a.compareTo(b) < 0; break;
+                            case "<=": resBool = a.compareTo(b) <= 0; break;
+                            case ">":  resBool = a.compareTo(b) > 0; break;
+                            case ">=": resBool = a.compareTo(b) >= 0; break;
+                            case "==": resBool = a.equals(b); break;
+                            default:   resBool = !a.equals(b); // "!="
+                        }
+                    }
+                    else {
                         throw new RuntimeException("Tipos incompatibles para comparación: "
                                 + leftObj.getClass() + " y " + rightObj.getClass());
                     }

@@ -1,6 +1,6 @@
 program recursividad;
 
-void sum(int a) : {
+void sum(float a) : {
     if (a < 1) {
         print("Terminamos");
     } else {
@@ -10,6 +10,6 @@ void sum(int a) : {
 } ;
 
 main {
-    sum(5);
+    sum(5.0);
 }
 end
