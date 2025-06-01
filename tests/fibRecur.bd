@@ -1,0 +1,22 @@
+program fibonacciRecursivo;
+
+var int n;
+
+void fibonacci(int n, int a, int b, int i) : 
+{
+    // Si aún no hemos llegado a n, imprimo número y sigo recursión
+    if (i < n) {
+        print(a);
+        // llamada recursiva
+        fibonacci(n, b, a + b, i + 1);
+    } else {
+        print(a);
+    }
+};
+
+main {
+    n = 20;
+    // Inicializo a=0, b=1 e i=1 para empezar la serie en fib(1)=0
+    fibonacci(n,0,1,1);
+}
+end

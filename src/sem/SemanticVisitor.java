@@ -27,7 +27,7 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     // Regla raíz del árbol de sintaxis
     @Override
     public String visitPrograma(BabyDuckParser.ProgramaContext ctx) {
-        gotoMainQuadIndex = quadGen.generateGoto(); 
+        gotoMainQuadIndex = quadGen.generateGoto();
         visit(ctx.vars());
         visit(ctx.funcs());
         int mainStartIndex = quadGen.nextQuad();
@@ -45,14 +45,17 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         functionDirectory.addFunction(funcName, "void");
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
-        // Visita parametros, añadiendolos al directorio de funciones y asigna la memoria
+        // Visita parametros, añadiendolos al directorio de funciones y asigna la
+        // memoria
         visit(ctx.parametros());
-        // Visita variables locales, añadiendolas al directorio de funciones y asigna la memoria
+        // Visita variables locales, añadiendolas al directorio de funciones y asigna la
+        // memoria
         visit(ctx.vars());
         // Genera el cuádruplo de inicio de función
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
-        // Visita el cuerpo de la función, lo que generará los cuádruplos correspondientes
+        // Visita el cuerpo de la función, lo que generará los cuádruplos
+        // correspondientes
         visit(ctx.body());
         // Genera el cuádruplo de fin de función
         quadGen.getQuadruples().add(new QuadrupleGenerator.Quadruple("ENDFUNC", null, null, null));
@@ -190,13 +193,12 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     public String visitPrint(BabyDuckParser.PrintContext ctx) {
         for (ParseTree child : ctx.children) {
             if (child instanceof TerminalNode
-                && ((TerminalNode) child).getSymbol().getType() == lex.BabyDuckParser.CTE_STRING) {
+                    && ((TerminalNode) child).getSymbol().getType() == lex.BabyDuckParser.CTE_STRING) {
                 String literal = ((TerminalNode) child).getText();
                 int addr = memory.getConstantAddress(literal, "string");
                 quadGen.pushOperand(String.valueOf(addr), "string");
                 quadGen.generatePrint();
-            }
-            else if (child instanceof lex.BabyDuckParser.ExpresionContext) {
+            } else if (child instanceof lex.BabyDuckParser.ExpresionContext) {
                 String tp = visit((lex.BabyDuckParser.ExpresionContext) child);
                 String addr = quadGen.popLastOperand();
                 quadGen.pushOperand(addr, tp);
@@ -244,18 +246,27 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     public String visitF_call(BabyDuckParser.F_callContext ctx) {
         String fn = ctx.ID().getText();
         quadGen.generateEra(fn);
-
-        List<String> paramNames = functionDirectory.getParameterNames(fn);
+        
+        List<String> argAddrs = new ArrayList<>();
+        List<String> argTypes = new ArrayList<>();
         for (int i = 0; i < ctx.expresion().size(); i++) {
-            String type = visit(ctx.expresion(i));
-            String addr = quadGen.popLastOperand();
-            int dstAddr = memory.getVariableAddress(fn, paramNames.get(i));
-            quadGen.generateParam(addr, dstAddr);
+            String tipo = visit(ctx.expresion(i));
+            String dir = quadGen.popLastOperand();
+            argAddrs.add(dir);
+            argTypes.add(tipo);
         }
-
+        
+        List<String> paramNames = functionDirectory.getParameterNames(fn);
+        
+        for (int i = 0; i < argAddrs.size(); i++) {
+            String actualAddr = argAddrs.get(i);
+            String paramName = paramNames.get(i);
+            int dstAddr = memory.getVariableAddress(fn, paramName);
+            quadGen.generateParam(actualAddr, dstAddr);
+        }
+        
         int target = funcStartQuad.get(fn);
         quadGen.generateGoSub(fn, target);
-
         return null;
     }
 

@@ -1,0 +1,18 @@
+program fibonacciIterativo;
+
+var int a, b, n, i, x;
+
+main {
+    n = 10;
+    a = 0;
+    b = 1;
+    i = 0;
+    while (i < n) do {
+        print(a);
+        x = a;
+        a = b;
+        b = x + a;
+        i = i + 1;
+    }
+}
+end

@@ -1,0 +1,21 @@
+program factRecur;
+
+var int n;
+
+void patito(int x) : {
+    print(x);
+}
+
+void factorial(int n, int r) : {
+    if (n > 1) {
+        factorial(n-1, r * n);
+    } else {
+        patito(r);
+    }
+};
+
+main {
+    n = 5;
+    factorial(n, 1);
+}
+end

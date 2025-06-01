@@ -1,15 +1,9 @@
-program recursividad;
+program pruebaPrint;
 
-void sum(float a) : {
-    if (a < 1) {
-        print("Terminamos");
-    } else {
-        print(a);
-        sum(a-1);
-    }
-} ;
+var int x;
 
 main {
-    sum(5.0);
+    x = 42;
+    print("Valor de x = ", x, ", listo.");
 }
 end

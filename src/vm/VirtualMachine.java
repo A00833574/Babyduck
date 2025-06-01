@@ -53,7 +53,6 @@ public class VirtualMachine {
         }
         if (addr >= VirtualMemoryManager.LOCAL_INT_BASE
                 && addr < VirtualMemoryManager.TEMP_INT_BASE) {
-            // Buscar en todos los marcos locales (de arriba a abajo)
             for (Map<Integer, Object> frame : localStack) {
                 if (frame.containsKey(addr)) {
                     return frame.get(addr);
@@ -99,7 +98,6 @@ public class VirtualMachine {
                     int rAddr = Integer.parseInt(q.right);
                     Object leftVal = getValue(lAddr);
                     Object rightVal = getValue(rAddr);
-                    // Determine operation type: both int, both float, or mixed
                     if (leftVal instanceof Integer && rightVal instanceof Integer) {
                         int a = (Integer) leftVal;
                         int b = (Integer) rightVal;
@@ -110,9 +108,7 @@ public class VirtualMachine {
                             default -> a / b;
                         };
                         setValue(Integer.parseInt(q.result), res);
-                    }
-                    else {
-                        // Treat operands as floats
+                    } else {
                         float a = (leftVal instanceof Float) ? (Float) leftVal : (Integer) leftVal;
                         float b = (rightVal instanceof Float) ? (Float) rightVal : (Integer) rightVal;
                         float res = switch (q.op) {
@@ -137,60 +133,96 @@ public class VirtualMachine {
                     Object leftObj = getValue(lAddr);
                     Object rightObj = getValue(rAddr);
                     boolean resBool;
-                    // Both int
                     if (leftObj instanceof Integer && rightObj instanceof Integer) {
                         int a = (Integer) leftObj;
                         int b = (Integer) rightObj;
                         switch (q.op) {
-                            case "<":  resBool = a < b; break;
-                            case "<=": resBool = a <= b; break;
-                            case ">":  resBool = a > b; break;
-                            case ">=": resBool = a >= b; break;
-                            case "==": resBool = a == b; break;
-                            default:   resBool = a != b; // "!="
+                            case "<":
+                                resBool = a < b;
+                                break;
+                            case "<=":
+                                resBool = a <= b;
+                                break;
+                            case ">":
+                                resBool = a > b;
+                                break;
+                            case ">=":
+                                resBool = a >= b;
+                                break;
+                            case "==":
+                                resBool = a == b;
+                                break;
+                            default:
+                                resBool = a != b;
                         }
-                    }
-                    // Both float
-                    else if (leftObj instanceof Float && rightObj instanceof Float) {
+                    } else if (leftObj instanceof Float && rightObj instanceof Float) {
                         float a = (Float) leftObj;
                         float b = (Float) rightObj;
                         switch (q.op) {
-                            case "<":  resBool = a < b; break;
-                            case "<=": resBool = a <= b; break;
-                            case ">":  resBool = a > b; break;
-                            case ">=": resBool = a >= b; break;
-                            case "==": resBool = a == b; break;
-                            default:   resBool = a != b; // "!="
+                            case "<":
+                                resBool = a < b;
+                                break;
+                            case "<=":
+                                resBool = a <= b;
+                                break;
+                            case ">":
+                                resBool = a > b;
+                                break;
+                            case ">=":
+                                resBool = a >= b;
+                                break;
+                            case "==":
+                                resBool = a == b;
+                                break;
+                            default:
+                                resBool = a != b;
                         }
-                    }
-                    // Mixed: one int, one float
-                    else if ((leftObj instanceof Integer && rightObj instanceof Float) ||
-                             (leftObj instanceof Float && rightObj instanceof Integer)) {
+                    } else if ((leftObj instanceof Integer && rightObj instanceof Float) ||
+                            (leftObj instanceof Float && rightObj instanceof Integer)) {
                         float a = (leftObj instanceof Float) ? (Float) leftObj : (Integer) leftObj;
                         float b = (rightObj instanceof Float) ? (Float) rightObj : (Integer) rightObj;
                         switch (q.op) {
-                            case "<":  resBool = a < b; break;
-                            case "<=": resBool = a <= b; break;
-                            case ">":  resBool = a > b; break;
-                            case ">=": resBool = a >= b; break;
-                            case "==": resBool = a == b; break;
-                            default:   resBool = a != b; // "!="
+                            case "<":
+                                resBool = a < b;
+                                break;
+                            case "<=":
+                                resBool = a <= b;
+                                break;
+                            case ">":
+                                resBool = a > b;
+                                break;
+                            case ">=":
+                                resBool = a >= b;
+                                break;
+                            case "==":
+                                resBool = a == b;
+                                break;
+                            default:
+                                resBool = a != b;
                         }
-                    }
-                    // String comparison unchanged
-                    else if (leftObj instanceof String && rightObj instanceof String) {
+                    } else if (leftObj instanceof String && rightObj instanceof String) {
                         String a = (String) leftObj;
                         String b = (String) rightObj;
                         switch (q.op) {
-                            case "<":  resBool = a.compareTo(b) < 0; break;
-                            case "<=": resBool = a.compareTo(b) <= 0; break;
-                            case ">":  resBool = a.compareTo(b) > 0; break;
-                            case ">=": resBool = a.compareTo(b) >= 0; break;
-                            case "==": resBool = a.equals(b); break;
-                            default:   resBool = !a.equals(b); // "!="
+                            case "<":
+                                resBool = a.compareTo(b) < 0;
+                                break;
+                            case "<=":
+                                resBool = a.compareTo(b) <= 0;
+                                break;
+                            case ">":
+                                resBool = a.compareTo(b) > 0;
+                                break;
+                            case ">=":
+                                resBool = a.compareTo(b) >= 0;
+                                break;
+                            case "==":
+                                resBool = a.equals(b);
+                                break;
+                            default:
+                                resBool = !a.equals(b);
                         }
-                    }
-                    else {
+                    } else {
                         throw new RuntimeException("Tipos incompatibles para comparación: "
                                 + leftObj.getClass() + " y " + rightObj.getClass());
                     }
@@ -220,7 +252,14 @@ public class VirtualMachine {
                     break;
                 }
                 case "print": {
-                    System.out.println(getValue(Integer.parseInt(q.result)));
+                    Object v = getValue(Integer.parseInt(q.result));
+
+                    System.out.print(v);
+
+                    if (IP + 1 >= quads.size() || !quads.get(IP + 1).op.equals("print")) {
+                        System.out.println();
+                    }
+
                     IP++;
                     break;
                 }
@@ -244,7 +283,6 @@ public class VirtualMachine {
                 }
                 case "ENDFUNC": {
                     if (callStack.isEmpty()) {
-                        // End of program or invalid return
                         IP = quads.size();
                         break;
                     }

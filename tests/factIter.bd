@@ -1,0 +1,14 @@
+program factorialIterativo;
+
+var int i, r, n;
+
+main {
+    n = 5;
+    r = 1;
+    while(n > 0) do {
+        r = r * n;
+        n = n - 1;
+    }
+    print(r);
+}
+end
