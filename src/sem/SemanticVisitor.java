@@ -16,6 +16,8 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     private final QuadrupleGenerator quadGen;
     private final Map<String, Integer> funcStartQuad = new HashMap<>();
     private final Map<String, BabyDuckParser.FuncionContext> funcContexts = new HashMap<>();
+    // Índice del cuádruplo GOTO inicial para saltar a main
+    private int gotoMainQuadIndex = -1;
 
     public SemanticVisitor() {
         // Registra la función global (void)
@@ -27,26 +29,48 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     // Punto de entrada para el árbol de sintaxis
     @Override
     public String visitPrograma(BabyDuckParser.ProgramaContext ctx) {
-        return super.visitPrograma(ctx);
+        // 1) Generar placeholder para saltar a main
+        gotoMainQuadIndex = quadGen.generateGoto(); // crea (GOTO, null, null, null)
+
+        // 2) Registrar variables globales
+        visit(ctx.vars());
+
+        // 3) Procesar y generar cuerpos de funciones en orden de declaración
+        visit(ctx.funcs());
+
+        // 4) Obtener la posición de inicio de main: es el siguiente cuádruplo
+        int mainStartIndex = quadGen.nextQuad();
+
+        // 5) Rellenar el placeholder con la dirección de main
+        quadGen.fillGoto(gotoMainQuadIndex, mainStartIndex);
+
+        // 6) Generar cuadruplos para el cuerpo de main
+        visit(ctx.body());
+
+        return null;
     }
 
     @Override
     public String visitFuncion(BabyDuckParser.FuncionContext ctx) {
-        // Ahora solo se lee el identificador y se fuerza "void"
         String funcName = ctx.ID().getText();
         functionDirectory.addFunction(funcName, "void");
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
 
-        // Registra parámetros y variables locales
+        // Registrar parámetros y variables locales
         visit(ctx.parametros());
         visit(ctx.vars());
 
-        // Guarda el punto de inicio de los cuádruplos para esta función
+        // Guardar índice donde comienzan los cuádruplos de esta función
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
 
-        // Regresa a contexto global
+        // Generar cuerpo de la función en su orden textual
+        visit(ctx.body());
+        // Cuádruplo marca fin de función
+        quadGen.getQuadruples().add(new QuadrupleGenerator.Quadruple("ENDFUNC", null, null, null));
+
+        // Regresar a contexto global
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
         return null;
@@ -237,14 +261,7 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         int target = quadGen.nextQuad() + 1;
         quadGen.generateGoSub(fn, target);
 
-        functionDirectory.setCurrentFunction(fn);
-        currentFunction = fn;
-        BabyDuckParser.FuncionContext fctx = funcContexts.get(fn);
-        visit(fctx.body());
-        functionDirectory.setCurrentFunction("global");
-        currentFunction = "global";
-
-        // Siempre void
+        // El cuerpo de la función ya se generó en su definición; no se re-genera aquí
         return null;
     }
 

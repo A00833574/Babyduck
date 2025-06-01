@@ -128,4 +128,16 @@ public class VirtualMemoryManager {
     public Map<String, Integer> getConstantsMap() {
         return constants;
     }
+
+    public Map<String, Integer> getGlobalVars() {
+        return globalVars;
+    }
+
+    public Map<String, Map<String, Integer>> getLocalVars() {
+        return localVars;
+    }
+
+    public Map<String, Integer> getTemporalsMap() {
+        return temporals;
+    }
 }
