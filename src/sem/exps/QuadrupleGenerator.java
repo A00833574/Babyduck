@@ -40,7 +40,6 @@ public class QuadrupleGenerator {
     }
 
     public void generateAssignment(String variable) {
-        // variable ya es la dirección destino (String)
         String value = operandStack.pop();
         typeStack.pop();
         quadruples.add(new Quadruple("=", value, null, variable));
@@ -74,9 +73,6 @@ public class QuadrupleGenerator {
         return quadruples.size();
     }
 
-    // --------------------------------------------------------
-    // Métodos para manejo de llamada a función
-    // --------------------------------------------------------
     public void generateEra(String funcName) {
         quadruples.add(new Quadruple("ERA", funcName, null, null));
     }
@@ -89,17 +85,12 @@ public class QuadrupleGenerator {
         quadruples.add(new Quadruple("GOSUB", funcName, null, String.valueOf(target)));
     }
 
-    // --------------------------------------------------------
-    // Mostrar cuadruplos (con nombres@dirección)
-    // --------------------------------------------------------
     private String getNameByAddress(int addr) {
-        // Buscar en variables globales
         for (var entry : memory.getGlobalVars().entrySet()) {
             if (entry.getValue() == addr) {
                 return entry.getKey();
             }
         }
-        // Buscar en variables locales
         for (var funcTable : memory.getLocalVars().values()) {
             for (var entry : funcTable.entrySet()) {
                 if (entry.getValue() == addr) {
@@ -107,17 +98,13 @@ public class QuadrupleGenerator {
                 }
             }
         }
-        // Buscar en constantes
         for (var entry : memory.getConstantsMap().entrySet()) {
             if (entry.getValue() == addr) {
-                // La clave es "tipo:literal"
                 return entry.getKey().split(":", 2)[1];
             }
         }
-        // Buscar en temporales
         for (var entry : memory.getTemporalsMap().entrySet()) {
             if (entry.getValue() == addr) {
-                // Temporales los nombramos t<número>
                 return "t" + (addr - VirtualMemoryManager.TEMP_INT_BASE);
             }
         }
@@ -132,7 +119,6 @@ public class QuadrupleGenerator {
             String name = getNameByAddress(addr);
             return (name != null) ? name : String.valueOf(addr);
         } catch (NumberFormatException e) {
-            // No es número: podría ser nombre de función en ERA/GOSUB
             return op;
         }
     }

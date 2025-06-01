@@ -10,7 +10,6 @@ public class FunctionDirectory {
     public void addFunction(String name, String ignoredReturnType) {
         if (directory.containsKey(name))
             throw new RuntimeException("Función '" + name + "' ya declarada.");
-        // Ignoramos `ignoredReturnType` y forzamos "void"
         directory.put(name, new FunctionInfo());
         currentFunction = name;
     }
@@ -30,14 +29,11 @@ public class FunctionDirectory {
     }
 
     public String getVariableType(String name) {
-        // Busca en alcance local; si no existe, busca en global
         String t = directory.get(currentFunction).getVariableType(name);
         if (t != null) return t;
         return directory.get("global").getVariableType(name);
     }
 
-    // Ya no es relevante obtener tipo de retorno, todas las funciones son void
-    // public String getFunctionReturnType(String name) { ... }
 
     public List<String> getParameterNames(String name) {
         FunctionInfo fi = directory.get(name);
@@ -63,7 +59,6 @@ public class FunctionDirectory {
         private VariableTable variables  = new VariableTable();
 
         FunctionInfo() {
-            // Siempre "void"
             this.returnType = "void";
         }
 

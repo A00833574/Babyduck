@@ -16,35 +16,21 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
     private final QuadrupleGenerator quadGen;
     private final Map<String, Integer> funcStartQuad = new HashMap<>();
     private final Map<String, BabyDuckParser.FuncionContext> funcContexts = new HashMap<>();
-    // Índice del cuádruplo GOTO inicial para saltar a main
     private int gotoMainQuadIndex = -1;
 
     public SemanticVisitor() {
-        // Registra la función global (void)
         functionDirectory.addFunction("global", "void");
         functionDirectory.setCurrentFunction("global");
         quadGen = new QuadrupleGenerator(memory);
     }
 
-    // Punto de entrada para el árbol de sintaxis
     @Override
     public String visitPrograma(BabyDuckParser.ProgramaContext ctx) {
-        // 1) Generar placeholder para saltar a main
-        gotoMainQuadIndex = quadGen.generateGoto(); // crea (GOTO, null, null, null)
-
-        // 2) Registrar variables globales
+        gotoMainQuadIndex = quadGen.generateGoto(); 
         visit(ctx.vars());
-
-        // 3) Procesar y generar cuerpos de funciones en orden de declaración
         visit(ctx.funcs());
-
-        // 4) Obtener la posición de inicio de main: es el siguiente cuádruplo
         int mainStartIndex = quadGen.nextQuad();
-
-        // 5) Rellenar el placeholder con la dirección de main
         quadGen.fillGoto(gotoMainQuadIndex, mainStartIndex);
-
-        // 6) Generar cuadruplos para el cuerpo de main
         visit(ctx.body());
 
         return null;
@@ -56,21 +42,12 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
         functionDirectory.addFunction(funcName, "void");
         functionDirectory.setCurrentFunction(funcName);
         currentFunction = funcName;
-
-        // Registrar parámetros y variables locales
         visit(ctx.parametros());
         visit(ctx.vars());
-
-        // Guardar índice donde comienzan los cuádruplos de esta función
         funcStartQuad.put(funcName, quadGen.nextQuad());
         funcContexts.put(funcName, ctx);
-
-        // Generar cuerpo de la función en su orden textual
         visit(ctx.body());
-        // Cuádruplo marca fin de función
         quadGen.getQuadruples().add(new QuadrupleGenerator.Quadruple("ENDFUNC", null, null, null));
-
-        // Regresar a contexto global
         functionDirectory.setCurrentFunction("global");
         currentFunction = "global";
         return null;
