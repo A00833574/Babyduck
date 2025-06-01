@@ -8,10 +8,11 @@ public class VirtualMachine {
     private final List<Quadruple> quads;
     private final VirtualMemoryManager memoryManager;
 
-    private final Map<Integer,Object> globalMem = new HashMap<>();
-    private final Deque<Map<Integer,Object>> localStack = new ArrayDeque<>();
-    private final Map<Integer,Object> tempMem   = new HashMap<>();
-    private final Map<Integer,Object> constMem  = new HashMap<>();
+    private final Map<Integer, Object> globalMem = new HashMap<>();
+    private final Deque<Map<Integer, Object>> localStack = new ArrayDeque<>();
+    private final Map<Integer, Object> tempMem = new HashMap<>();
+    private final Map<Integer, Object> constMem = new HashMap<>();
+    private final Deque<Integer> callStack = new ArrayDeque<>();
 
     private int IP = 0;
 
@@ -19,20 +20,25 @@ public class VirtualMachine {
         this.quads = quads;
         this.memoryManager = vm;
 
-        for (Map.Entry<String,Integer> e : memoryManager.getConstantsMap().entrySet()) {
-            String[] parts = e.getKey().split(":",2);
+        for (Map.Entry<String, Integer> e : memoryManager.getConstantsMap().entrySet()) {
+            String[] parts = e.getKey().split(":", 2);
             String type = parts[0], lit = parts[1];
             Integer addr = e.getValue();
             Object val;
-            switch(type) {
-                case "int":    val = Integer.parseInt(lit); break;
-                case "float":  val = Float.parseFloat(lit); break;
-                case "string":
-                    val = (lit.startsWith("\"")&&lit.endsWith("\""))
-                          ? lit.substring(1,lit.length()-1)
-                          : lit;
+            switch (type) {
+                case "int":
+                    val = Integer.parseInt(lit);
                     break;
-                default: throw new RuntimeException("Tipo desconocido: "+type);
+                case "float":
+                    val = Float.parseFloat(lit);
+                    break;
+                case "string":
+                    val = (lit.startsWith("\"") && lit.endsWith("\""))
+                            ? lit.substring(1, lit.length() - 1)
+                            : lit;
+                    break;
+                default:
+                    throw new RuntimeException("Tipo desconocido: " + type);
             }
             constMem.put(addr, val);
         }
@@ -42,28 +48,38 @@ public class VirtualMachine {
 
     private Object getValue(int addr) {
         if (addr >= VirtualMemoryManager.GLOBAL_INT_BASE
-         && addr <  VirtualMemoryManager.LOCAL_INT_BASE)
+                && addr < VirtualMemoryManager.LOCAL_INT_BASE) {
             return globalMem.get(addr);
+        }
         if (addr >= VirtualMemoryManager.LOCAL_INT_BASE
-         && addr <  VirtualMemoryManager.TEMP_INT_BASE)
-            return localStack.peek().get(addr);
+                && addr < VirtualMemoryManager.TEMP_INT_BASE) {
+            // Buscar en todos los marcos locales (de arriba a abajo)
+            for (Map<Integer, Object> frame : localStack) {
+                if (frame.containsKey(addr)) {
+                    return frame.get(addr);
+                }
+            }
+            return null;
+        }
         if (addr >= VirtualMemoryManager.TEMP_INT_BASE
-         && addr <  VirtualMemoryManager.CONST_INT_BASE)
+                && addr < VirtualMemoryManager.CONST_INT_BASE) {
             return tempMem.get(addr);
-        if (addr >= VirtualMemoryManager.CONST_INT_BASE)
+        }
+        if (addr >= VirtualMemoryManager.CONST_INT_BASE) {
             return constMem.get(addr);
-        throw new RuntimeException("Dirección inválida: "+addr);
+        }
+        throw new RuntimeException("Dirección inválida: " + addr);
     }
 
     private void setValue(int addr, Object val) {
         if (addr >= VirtualMemoryManager.GLOBAL_INT_BASE
-         && addr <  VirtualMemoryManager.LOCAL_INT_BASE)
+                && addr < VirtualMemoryManager.LOCAL_INT_BASE)
             globalMem.put(addr, val);
         else if (addr >= VirtualMemoryManager.LOCAL_INT_BASE
-              && addr <  VirtualMemoryManager.TEMP_INT_BASE)
+                && addr < VirtualMemoryManager.TEMP_INT_BASE)
             localStack.peek().put(addr, val);
         else if (addr >= VirtualMemoryManager.TEMP_INT_BASE
-              && addr <  VirtualMemoryManager.CONST_INT_BASE)
+                && addr < VirtualMemoryManager.CONST_INT_BASE)
             tempMem.put(addr, val);
         else if (addr >= VirtualMemoryManager.CONST_INT_BASE)
             throw new RuntimeException("No puedes sobrescribir constantes: " + addr);
@@ -74,22 +90,113 @@ public class VirtualMachine {
     public void run() {
         while (IP < quads.size()) {
             Quadruple q = quads.get(IP);
-            switch(q.op) {
+            switch (q.op) {
                 case "+":
                 case "-":
                 case "*":
                 case "/": {
                     int l = Integer.parseInt(q.left);
                     int r = Integer.parseInt(q.right);
-                    int a = (Integer)getValue(l);
-                    int b = (Integer)getValue(r);
-                    int res = switch(q.op) {
+                    int a = (Integer) getValue(l);
+                    int b = (Integer) getValue(r);
+                    int res = switch (q.op) {
                         case "+" -> a + b;
                         case "-" -> a - b;
                         case "*" -> a * b;
-                        default  -> a / b;
+                        default -> a / b;
                     };
                     setValue(Integer.parseInt(q.result), res);
+                    IP++;
+                    break;
+                }
+                case "<":
+                case "<=":
+                case ">":
+                case ">=":
+                case "==":
+                case "!=": {
+                    int lAddr = Integer.parseInt(q.left);
+                    int rAddr = Integer.parseInt(q.right);
+                    Object leftObj = getValue(lAddr);
+                    Object rightObj = getValue(rAddr);
+                    boolean resBool;
+                    // Comparar enteros
+                    if (leftObj instanceof Integer && rightObj instanceof Integer) {
+                        int a = (Integer) leftObj;
+                        int b = (Integer) rightObj;
+                        switch (q.op) {
+                            case "<":
+                                resBool = a < b;
+                                break;
+                            case "<=":
+                                resBool = a <= b;
+                                break;
+                            case ">":
+                                resBool = a > b;
+                                break;
+                            case ">=":
+                                resBool = a >= b;
+                                break;
+                            case "==":
+                                resBool = a == b;
+                                break;
+                            default:
+                                resBool = a != b; // "!="
+                        }
+                    }
+                    // Comparar flotantes
+                    else if (leftObj instanceof Float && rightObj instanceof Float) {
+                        float a = (Float) leftObj;
+                        float b = (Float) rightObj;
+                        switch (q.op) {
+                            case "<":
+                                resBool = a < b;
+                                break;
+                            case "<=":
+                                resBool = a <= b;
+                                break;
+                            case ">":
+                                resBool = a > b;
+                                break;
+                            case ">=":
+                                resBool = a >= b;
+                                break;
+                            case "==":
+                                resBool = a == b;
+                                break;
+                            default:
+                                resBool = a != b; // "!="
+                        }
+                    }
+                    // Comparar cadenas
+                    else if (leftObj instanceof String && rightObj instanceof String) {
+                        String a = (String) leftObj;
+                        String b = (String) rightObj;
+                        switch (q.op) {
+                            case "<":
+                                resBool = a.compareTo(b) < 0;
+                                break;
+                            case "<=":
+                                resBool = a.compareTo(b) <= 0;
+                                break;
+                            case ">":
+                                resBool = a.compareTo(b) > 0;
+                                break;
+                            case ">=":
+                                resBool = a.compareTo(b) >= 0;
+                                break;
+                            case "==":
+                                resBool = a.equals(b);
+                                break;
+                            default:
+                                resBool = !a.equals(b); // "!="
+                        }
+                    } else {
+                        throw new RuntimeException("Tipos incompatibles para comparación: "
+                                + leftObj.getClass() + " y " + rightObj.getClass());
+                    }
+                    int resAddr = Integer.parseInt(q.result);
+                    setValue(resAddr, resBool);
                     IP++;
                     break;
                 }
@@ -102,9 +209,11 @@ public class VirtualMachine {
                     break;
                 }
                 case "GOTOF": {
-                    boolean cond = !((Boolean)getValue(Integer.parseInt(q.left)));
-                    if (cond) IP = Integer.parseInt(q.result);
-                    else      IP++;
+                    boolean cond = !((Boolean) getValue(Integer.parseInt(q.left)));
+                    if (cond)
+                        IP = Integer.parseInt(q.result);
+                    else
+                        IP++;
                     break;
                 }
                 case "GOTO": {
@@ -130,7 +239,17 @@ public class VirtualMachine {
                     break;
                 }
                 case "GOSUB": {
+                    callStack.push(IP + 1);
                     IP = Integer.parseInt(q.result);
+                    break;
+                }
+                case "ENDFUNC": {
+                    if (callStack.isEmpty()) {
+                        // End of program or invalid return
+                        IP = quads.size();
+                        break;
+                    }
+                    IP = callStack.pop();
                     break;
                 }
                 default:

@@ -202,11 +202,20 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
 
     @Override
     public String visitPrint(BabyDuckParser.PrintContext ctx) {
-        for (var ec : ctx.expresion()) {
-            String tp = visit(ec);
-            String addr = quadGen.popLastOperand();
-            quadGen.pushOperand(addr, tp);
-            quadGen.generatePrint();
+        for (ParseTree child : ctx.children) {
+            if (child instanceof TerminalNode
+                && ((TerminalNode) child).getSymbol().getType() == lex.BabyDuckParser.CTE_STRING) {
+                String literal = ((TerminalNode) child).getText();
+                int addr = memory.getConstantAddress(literal, "string");
+                quadGen.pushOperand(String.valueOf(addr), "string");
+                quadGen.generatePrint();
+            }
+            else if (child instanceof lex.BabyDuckParser.ExpresionContext) {
+                String tp = visit((lex.BabyDuckParser.ExpresionContext) child);
+                String addr = quadGen.popLastOperand();
+                quadGen.pushOperand(addr, tp);
+                quadGen.generatePrint();
+            }
         }
         return null;
     }
@@ -258,10 +267,9 @@ public class SemanticVisitor extends BabyDuckBaseVisitor<String> {
             quadGen.generateParam(addr, dstAddr);
         }
 
-        int target = quadGen.nextQuad() + 1;
+        int target = funcStartQuad.get(fn);
         quadGen.generateGoSub(fn, target);
 
-        // El cuerpo de la función ya se generó en su definición; no se re-genera aquí
         return null;
     }
 

@@ -6,21 +6,22 @@ import java.util.Map;
 public class VirtualMemoryManager {
     public static final int GLOBAL_INT_BASE = 1000;
     public static final int GLOBAL_FLOAT_BASE = 2000;
-    public static final int GLOBAL_STRING_BASE = 3000;
+
     public static final int LOCAL_INT_BASE = 5000;
     public static final int LOCAL_FLOAT_BASE = 6000;
-    public static final int LOCAL_STRING_BASE = 7000;
+
     public static final int TEMP_INT_BASE = 9000;
     public static final int TEMP_FLOAT_BASE = 10000;
-    public static final int TEMP_STRING_BASE = 11000;
+
     public static final int CONST_INT_BASE = 13000;
     public static final int CONST_FLOAT_BASE = 14000;
     public static final int CONST_STRING_BASE = 15000;
 
-    private int nextGlobalInt = 0, nextGlobalFloat = 0, nextGlobalString = 0;
-    private int nextLocalInt = 0, nextLocalFloat = 0, nextLocalString = 0;
-    private int nextTempInt = 0, nextTempFloat = 0, nextTempString = 0;
-    private int nextConstInt = 0, nextConstFloat = 0, nextConstString = 0;
+    private int nextGlobalInt = 0, nextGlobalFloat = 0;
+    private int nextLocalInt = 0, nextLocalFloat = 0;
+    private int nextTempInt = 0, nextTempFloat = 0;
+    private int nextConstInt = 0, nextConstFloat = 0;
+    private int nextConstString = 0;
 
     private Map<String, Integer> globalVars = new HashMap<>();
     private Map<String, Map<String, Integer>> localVars = new HashMap<>();
@@ -37,9 +38,6 @@ public class VirtualMemoryManager {
                 break;
             case "float":
                 addr = GLOBAL_FLOAT_BASE + nextGlobalFloat++;
-                break;
-            case "string":
-                addr = GLOBAL_STRING_BASE + nextGlobalString++;
                 break;
             default:
                 throw new RuntimeException("Tipo desconocido: " + type);
@@ -60,9 +58,6 @@ public class VirtualMemoryManager {
                 break;
             case "float":
                 addr = LOCAL_FLOAT_BASE + nextLocalFloat++;
-                break;
-            case "string":
-                addr = LOCAL_STRING_BASE + nextLocalString++;
                 break;
             default:
                 throw new RuntimeException("Tipo desconocido: " + type);
@@ -101,9 +96,6 @@ public class VirtualMemoryManager {
                 break;
             case "float":
                 addr = TEMP_FLOAT_BASE + nextTempFloat++;
-                break;
-            case "string":
-                addr = TEMP_STRING_BASE + nextTempString++;
                 break;
             default:
                 throw new RuntimeException("Tipo desconocido: " + type) ;
