@@ -167,30 +167,6 @@ public class VirtualMachine {
                             default:
                                 resBool = a != b; // "!="
                         }
-                    }
-                    // Comparar cadenas
-                    else if (leftObj instanceof String && rightObj instanceof String) {
-                        String a = (String) leftObj;
-                        String b = (String) rightObj;
-                        switch (q.op) {
-                            case "<":
-                                resBool = a.compareTo(b) < 0;
-                                break;
-                            case "<=":
-                                resBool = a.compareTo(b) <= 0;
-                                break;
-                            case ">":
-                                resBool = a.compareTo(b) > 0;
-                                break;
-                            case ">=":
-                                resBool = a.compareTo(b) >= 0;
-                                break;
-                            case "==":
-                                resBool = a.equals(b);
-                                break;
-                            default:
-                                resBool = !a.equals(b); // "!="
-                        }
                     } else {
                         throw new RuntimeException("Tipos incompatibles para comparación: "
                                 + leftObj.getClass() + " y " + rightObj.getClass());
