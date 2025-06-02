@@ -86,7 +86,6 @@ PLUS         : '+' ;
 MINUS        : '-' ;
 MULT         : '*' ;
 DIV          : '/' ;
-PERCENT      : '%' ;
 ASSIGN       : '=' ;
 EQ           : '==' ;
 NEQ          : '!=' ;
